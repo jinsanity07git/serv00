@@ -2,7 +2,8 @@ name: SSH Login
 
 on:
   schedule:
-    - cron: '0 11 5 * *'  # 每月的 5号 北京时间 19 点运行
+    # - cron: '0 11 5 * *'  # 每月的 5号 北京时间 19 点运行
+    - cron: "0 14 * * 5"
   workflow_dispatch:
 
 jobs:
@@ -10,6 +11,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      # eco
+      - uses: actions/checkout@v2
+
+      - name: Install Required Libraries
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libegl1 \
+            libopengl0 \
+            libxcb-cursor0
+      
+      - name: Initialize Environment
+        env:
+            DEBIAN_FRONTEND: noninteractive
+        run: |
+          sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
+
+
+      - name: Download the Economists 
+        run: |
+          mkdir eco/ && cd eco/
+          ebook-convert "The Economist.recipe" `date +%Y%m%d`.mobi        
+
+      - name: Set Date
+        id: vars
+        run: echo "date=$(date +%Y%m%d)" >> $GITHUB_ENV
+        
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: "eco-${{ env.date }}"
+          path: ./*.mobi # Changed to only upload the generated epub files
+
+
+      # server00
       - name: Checkout repository
         uses: actions/checkout@v2
       
@@ -33,3 +69,4 @@ jobs:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           
         run: python run.py
+      
