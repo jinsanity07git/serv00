@@ -32,7 +32,7 @@ jobs:
       - name: Download the Economists 
         run: |
           mkdir eco/ && cd eco/
-          ebook-convert "The Economist.recipe" `date +%Y%m%d`.mobi        
+          ebook-convert "The Economist.recipe" `date +%Y%m%d`.epub        
 
       - name: Set Date
         id: vars
@@ -42,7 +42,7 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: "eco-${{ env.date }}"
-          path: ./*.mobi # Changed to only upload the generated epub files
+          path: ./
 
 
       # server00
