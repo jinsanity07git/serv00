@@ -162,14 +162,17 @@ def SendByEmail(recipients=["jinsanity@kindle.com"],
     finally:
         server.quit()
 
+if __name__ == "__main__":
+    # os.environ['Erecipient'] = 
+    # os.environ['Eaccount']   = 
+    # os.environ['Epassword']  = 
 
-SendByEmail(recipients = os.getenv('Erecipent'),
-            subject=f'Eco{current_date}')
-            
-if push == "mail":
-    mail_push('https://zzzwb.us.kg/test')
-elif push == "telegram":
-    telegram_push(content)
-else:
-    print("推送失败，推送参数设置错误")
+    SendByEmail(recipients = [os.getenv('Erecipient')],
+                subject=f'Eco{current_date}')
+    if push == "mail":
+        mail_push('https://zzzwb.us.kg/test')
+    elif push == "telegram":
+        telegram_push(content)
+    else:
+        print("推送失败，推送参数设置错误")
 
