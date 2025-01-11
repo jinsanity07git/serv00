@@ -76,9 +76,100 @@ def telegram_push(message):
     if response.status_code != 200:
         print(f"发送消息到Telegram失败: {response.text}")
 
+### ------------------
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+import os
+import ssl
+import smtplib
+from datetime import datetime
+current_date = datetime.now().strftime('%Y%m%d')
+
+def SendByEmail(recipients=["jinsanity@kindle.com"], 
+                CC=None, 
+                text='readme.md', 
+                subject="update", 
+                href="url", 
+                div="<div>"):
+    smtp_server = "smtp.gmail.com"
+    port = 587  # For starttls
+    sender_email = os.getenv('Eaccount')
+    password = os.getenv('Epassword')
+
+    message = MIMEMultipart('alternative')
+    message["Subject"] = subject
+    message["From"] = sender_email
+    message["To"] = ", ".join(recipients)
+    if CC:
+        message['Cc'] = ", ".join(CC)
+
+    # HTML email body
+    html = f"""\
+    <html>
+    <body>
+        <p>Please find the attached epub file!
+        </p>
+        {current_date}
+    </body>
+    </html>
+    """
+
+    # Attach HTML content to the message
+    part2 = MIMEText(html, "html")
+    message.attach(part2)
+
+    # Attach EPUB file
+    epub_path = f"eco/{current_date}.epub"
+    
+    try:
+        with open(epub_path, 'rb') as attachment:
+            # Add file as application/octet-stream
+            part = MIMEBase('application', 'octet-stream')
+            part.set_payload(attachment.read())
+
+        # Encode file in ASCII characters to send by email    
+        encoders.encode_base64(part)
+
+        # Add header as key/value pair to attachment part
+        part.add_header(
+            "Content-Disposition",
+            f"attachment; filename= {current_date}.epub"
+        )
+
+        # Add attachment to message
+        message.attach(part)
+    except FileNotFoundError:
+        print(f"Warning: EPUB file not found at {epub_path}")
+        return
+
+    # Create a secure SSL context
+    context = ssl.create_default_context()
+
+    # Try to log in to server and send email
+    try:
+        server = smtplib.SMTP(smtp_server, port)
+        server.ehlo()
+        server.starttls(context=context)
+        server.ehlo()
+        server.login(sender_email, password)
+        server.sendmail(sender_email, recipients, message.as_string())
+        print("Email has been sent with EPUB attachment")
+    except Exception as e:
+        print("An error occurred when sending the email:")
+        print(e)
+    finally:
+        server.quit()
+
+
+SendByEmail(recipients = os.getenv('Erecipent'),
+            subject=f'Eco{current_date}')
+            
 if push == "mail":
     mail_push('https://zzzwb.us.kg/test')
 elif push == "telegram":
     telegram_push(content)
 else:
     print("推送失败，推送参数设置错误")
+
