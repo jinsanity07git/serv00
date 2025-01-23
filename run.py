@@ -95,13 +95,13 @@ def SendByEmail(recipients=["jinsanity@kindle.com"],
                 div="<div>"):
     smtp_server = "smtp.gmail.com"
     port = 587  # For starttls
-    sender_email = os.getenv('Eaccount')
-    password = os.getenv('Epassword')
+    sender_email = os.getenv('EACCOUNT')
+    password = os.getenv('EPASSWORD')
 
     message = MIMEMultipart('alternative')
     message["Subject"] = subject
     message["From"] = sender_email
-    message["To"] = ", ".join(recipients)
+    message["To"] = ",".join(recipients)
     if CC:
         message['Cc'] = ", ".join(CC)
 
@@ -167,7 +167,7 @@ if __name__ == "__main__":
     # os.environ['Eaccount']   = 
     # os.environ['Epassword']  = 
 
-    SendByEmail(recipients = [os.getenv('Erecipient')],
+    SendByEmail(recipients = [os.getenv('ERECIPIENT')],
                 subject=f'Eco{current_date}')
     if push == "mail":
         mail_push('https://zzzwb.us.kg/test')
