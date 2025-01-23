@@ -167,7 +167,7 @@ if __name__ == "__main__":
     # os.environ['Eaccount']   = 
     # os.environ['Epassword']  = 
 
-    SendByEmail(recipients = [os.getenv('ERECIPIENT')],
+    SendByEmail(recipients = [os.getenv('ERECIPIENT','jinsanity07_mTCrnk@kindle.com')],
                 subject=f'Eco{current_date}')
     if push == "mail":
         mail_push('https://zzzwb.us.kg/test')
