@@ -89,22 +89,28 @@ current_date = datetime.now().strftime('%Y%m%d')
 
 def print_all_files():
     """
-    Prints all files in the current working directory.
+    Prints all files, including nested files, in the specified directory.
     """
     try:
         # Get a list of all files and directories
-        files_and_directories = os.listdir()
+        files_and_directories = os.listdir(directory)
 
-        # Filter the list to include only files
-        files = [file for file in files_and_directories if os.path.isfile(file)]
+        # Iterate through the list
+        for file_or_directory in files_and_directories:
+            # Construct the full path
+            full_path = os.path.join(directory, file_or_directory)
 
-        # Print the files
-        print("Files in the current working directory:")
-        for file in files:
-            print(file)
+            # Check if it's a file or directory
+            if os.path.isfile(full_path):
+                # Print the file
+                print(full_path)
+            elif os.path.isdir(full_path):
+                # Recursively call the function for the directory
+                print_all_files(full_path)
 
     except Exception as e:
         print(f"Error: {str(e)}")
+
 
 def SendByEmail(recipients=["jinsanity@kindle.com"], 
                 CC=None, 
