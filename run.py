@@ -87,7 +87,7 @@ import smtplib
 from datetime import datetime
 current_date = datetime.now().strftime('%Y%m%d')
 
-def print_all_files():
+def print_all_files(directory):
     """
     Prints all files, including nested files, in the specified directory.
     """
@@ -146,7 +146,8 @@ def SendByEmail(recipients=["jinsanity@kindle.com"],
     message.attach(part2)
 
     # Attach EPUB file
-    print_all_files()
+    cwd = os.getcwd()
+    print_all_files(cwd)
     epub_path = f"eco/{current_date}.epub"
     
     try:
