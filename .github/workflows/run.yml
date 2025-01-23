@@ -38,13 +38,8 @@ jobs:
         id: vars
         run: echo "date=$(date +%Y%m%d)" >> $GITHUB_ENV
         
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: "eco-${{ env.date }}"
-          path: ./
 
-
+# ###########
       # server00
       - name: Checkout repository
         uses: actions/checkout@v2
@@ -72,4 +67,9 @@ jobs:
           EPASSWORD: ${{ secrets.EPASSWORD }}
           
         run: python run.py
-      
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "eco-${{ env.date }}"
+          path: ./
