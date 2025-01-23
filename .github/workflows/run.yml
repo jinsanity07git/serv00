@@ -67,6 +67,9 @@ jobs:
           PUSH: ${{ secrets.PUSH }}
           TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          ERECIPIENT: ${{ secrets.ERECIPIENT }}
+          EACCOUNT: ${{ secrets.EACCOUNT }}
+          EPASSWORD: ${{ secrets.EPASSWORD }}
           
         run: python run.py
       
