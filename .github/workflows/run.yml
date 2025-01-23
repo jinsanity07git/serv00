@@ -12,7 +12,8 @@ jobs:
 
     steps:
       # eco
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v2
 
       - name: Install Required Libraries
         run: |
@@ -41,8 +42,8 @@ jobs:
 
 # ###########
       # server00
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      # - name: Checkout repository
+      #   uses: actions/checkout@v2
       
       - name: Set up Python
         uses: actions/setup-python@v2
