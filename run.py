@@ -87,6 +87,25 @@ import smtplib
 from datetime import datetime
 current_date = datetime.now().strftime('%Y%m%d')
 
+def print_all_files():
+    """
+    Prints all files in the current working directory.
+    """
+    try:
+        # Get a list of all files and directories
+        files_and_directories = os.listdir()
+
+        # Filter the list to include only files
+        files = [file for file in files_and_directories if os.path.isfile(file)]
+
+        # Print the files
+        print("Files in the current working directory:")
+        for file in files:
+            print(file)
+
+    except Exception as e:
+        print(f"Error: {str(e)}")
+
 def SendByEmail(recipients=["jinsanity@kindle.com"], 
                 CC=None, 
                 text='readme.md', 
@@ -121,6 +140,7 @@ def SendByEmail(recipients=["jinsanity@kindle.com"],
     message.attach(part2)
 
     # Attach EPUB file
+    print_all_files()
     epub_path = f"eco/{current_date}.epub"
     
     try:
