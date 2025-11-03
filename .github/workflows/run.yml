@@ -33,7 +33,8 @@ jobs:
       - name: Download the Economists 
         run: |
           mkdir eco/ && cd eco/
-          ebook-convert "The Economist.recipe" `date +%Y%m%d`.epub        
+          ebook-convert "The Economist.recipe" `date +%Y%m%d`.epub --ignore-errors
+          continue-on-error: false  
 
       - name: Set Date
         id: vars
