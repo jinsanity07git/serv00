@@ -52,6 +52,13 @@ tg交流群：[https://t.me/zzzjsjl](https://t.me/zzzjsjl)
 - 在GitHub仓库的“Actions”选项卡中，手动触发运行一次工作流程。
 - “Actions”页面>"Run SSH Login">"Run workflow">"Run workflow"
 - 检查运行结果，没有报错说明就是运行成功了，可以点击运行记录的列表进去查看运行的详细情况
+- 本地开发或调试时，可以运行 `python -m compileall run.py` 来快速检查 `run.py` 是否存在语法错误。该命令会调用 Python 内置的 `compileall` 模块尝试编译文件，如果命令成功退出，就说明文件可以被 Python 解释器正常加载。
+
+### Economist 期刊下载核对
+
+- 工作流会通过 `ebook-convert "The Economist.recipe" "$(date +%Y%m%d).epub"` 下载 EPUB。
+- 如果你已经在本地安装了 [Calibre](https://calibre-ebook.com/)，可以运行 `./scripts/manual_ebook_check.sh` 来复现同样的命令，脚本会在 `eco/` 目录下生成当天日期的 EPUB 并在结束时确认文件存在。如果系统缺少 `ebook-convert` 且支持 `apt-get`，脚本会自动尝试通过 `apt-get install --no-install-recommends calibre` 安装 Calibre。脚本默认使用仓库 `recipes/The Economist.recipe` 文件，它在官方版本基础上做了兼容性修正，以适配最新的网页结构。
+- 如果脚本无法自动安装 Calibre，会明确提示你需要手动安装依赖；若下载环节因为代理/网络限制而失败，脚本也会保留 Calibre 的错误信息并提示你检查网络环境。
 
 
 
