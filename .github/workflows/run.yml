@@ -30,11 +30,13 @@ jobs:
           sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
 
 
-      - name: Download the Economists 
+      - name: Download the Economists
+        env:
+          RECIPE_PATH: "${{ github.workspace }}/recipes/The Economist.recipe"
         run: |
-          mkdir eco/ && cd eco/
-          ebook-convert "The Economist.recipe" `date +%Y%m%d`.epub --ignore-errors
-          continue-on-error: false  
+          mkdir -p eco
+          cd eco
+          ebook-convert "$RECIPE_PATH" "$(date +%Y%m%d).epub"
 
       - name: Set Date
         id: vars
