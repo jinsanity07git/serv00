@@ -31,10 +31,12 @@ jobs:
 
 
       - name: Download the Economists
+        env:
+          RECIPE_PATH: "${{ github.workspace }}/recipes/The Economist.recipe"
         run: |
           mkdir -p eco
           cd eco
-          ebook-convert "The Economist.recipe" "$(date +%Y%m%d).epub"
+          ebook-convert "$RECIPE_PATH" "$(date +%Y%m%d).epub"
 
       - name: Set Date
         id: vars

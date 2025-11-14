@@ -56,8 +56,9 @@ tg交流群：[https://t.me/zzzjsjl](https://t.me/zzzjsjl)
 
 ### Economist 期刊下载核对
 
-- 工作流会通过 `ebook-convert "The Economist.recipe" "$(date +%Y%m%d).epub"` 下载 EPUB。
+- 工作流会通过 `ebook-convert "$GITHUB_WORKSPACE/recipes/The Economist.recipe" "$(date +%Y%m%d).epub"` 下载 EPUB，以确保始终使用仓库中经过验证的配方。
 - 如果你已经在本地安装了 [Calibre](https://calibre-ebook.com/)，可以运行 `./scripts/manual_ebook_check.sh` 来复现同样的命令，脚本会在 `eco/` 目录下生成当天日期的 EPUB 并在结束时确认文件存在。如果系统缺少 `ebook-convert` 且支持 `apt-get`，脚本会自动尝试通过 `apt-get install --no-install-recommends calibre` 安装 Calibre。脚本默认使用仓库 `recipes/The Economist.recipe` 文件，它在官方版本基础上做了兼容性修正，以适配最新的网页结构。
+- 之所以需要在仓库中自带该配方，是因为 The Economist 的 API 会不定期返回包含 `rubric` 或 `flyTitle` 字段的字典对象，而 Calibre 内置的原始配方假定这些字段始终是简单字符串，从而导致转换过程抛出异常。通过内置补丁后的配方，我们可以主动将这些字段转换为字符串，保证 GitHub Action 和本地校验脚本在网站结构变更时依然稳定运行。
 - 如果脚本无法自动安装 Calibre，会明确提示你需要手动安装依赖；若下载环节因为代理/网络限制而失败，脚本也会保留 Calibre 的错误信息并提示你检查网络环境。
 
 

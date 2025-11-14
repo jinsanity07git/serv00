@@ -1,4 +1,10 @@
 #!/usr/bin/env  python
+# NOTE: This recipe is vendored in the repository because upstream Economist
+# responses sometimes return dict objects for the rubric/flyTitle metadata. The
+# stock Calibre recipe assumes those fields are plain strings and crashes when
+# they change shape. This copy coerces the problematic fields to strings so both
+# the GitHub Action and manual verification script keep working even when the
+# website format shifts.
 import json
 import time
 from datetime import datetime, timedelta
