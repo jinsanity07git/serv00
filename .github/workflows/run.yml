@@ -16,11 +16,7 @@ jobs:
       - name: Install Required Libraries        
         run: |          
           sudo apt-get update          
-          sudo apt-get install -y \            
-            libegl1 \            
-            libopengl0 \            
-            libxcb-cursor0 \
-            xvfb
+          sudo apt-get install -y libegl1 libopengl0 libxcb-cursor0 xvfb
 
       - name: Initialize Environment        
         env:            
