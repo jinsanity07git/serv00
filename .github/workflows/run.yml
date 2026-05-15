@@ -28,7 +28,8 @@ jobs:
         env:          
           RECIPE_PATH: "${{ github.workspace }}/recipes/The Economist.recipe"
           QTWEBENGINE_DISABLE_SANDBOX: 1
-          QT_QPA_PLATFORM: offscreen
+          # Tell the internal Chromium engine to completely disable hardware acceleration
+          QTWEBENGINE_CHROMIUM_FLAGS: "--disable-gpu"
         run: |          
           mkdir -p eco          
           cd eco          
