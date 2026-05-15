@@ -1,76 +1,75 @@
 name: SSH Login
-
-on:
-  schedule:
-    # - cron: '0 11 5 * *'  # 每月的 5号 北京时间 19 点运行
-    - cron: "0 14 * * 5"
+on:  
+  schedule:    
+    # - cron: '0 11 5 * *'  # 每月的 5号 北京时间 19 点运行    
+    - cron: "0 14 * * 5"  
   workflow_dispatch:
 
-jobs:
-  ssh-login:
-    runs-on: ubuntu-latest
+jobs:  
+  ssh-login:    
+    runs-on: ubuntu-latest    
+    steps:      
+      # eco      
+      - name: Checkout repository        
+        uses: actions/checkout@v4
 
-    steps:
-      # eco
-      - name: Checkout repository
-        uses: actions/checkout@v2
+      - name: Install Required Libraries        
+        run: |          
+          sudo apt-get update          
+          sudo apt-get install -y \            
+            libegl1 \            
+            libopengl0 \            
+            libxcb-cursor0 \
+            xvfb
 
-      - name: Install Required Libraries
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libegl1 \
-            libopengl0 \
-            libxcb-cursor0
-      
-      - name: Initialize Environment
-        env:
-            DEBIAN_FRONTEND: noninteractive
-        run: |
-          sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin
-      - name: Download the Economists
-        env:
+      - name: Initialize Environment        
+        env:            
+          DEBIAN_FRONTEND: noninteractive        
+        run: |          
+          sudo -v && wget -nv -O- https://download.calibre-ebook.com/linux-installer.sh | sudo sh /dev/stdin      
+
+      - name: Download the Economists        
+        env:          
           RECIPE_PATH: "${{ github.workspace }}/recipes/The Economist.recipe"
-        run: |
-          mkdir -p eco
-          cd eco
-          ebook-convert "$RECIPE_PATH" "$(date +%Y%m%d).epub"
-      - name: Set Date
-        id: vars
-        run: echo "date=$(date +%Y%m%d)" >> $GITHUB_ENV
-        
+          QTWEBENGINE_DISABLE_SANDBOX: 1
+          QT_QPA_PLATFORM: offscreen
+        run: |          
+          mkdir -p eco          
+          cd eco          
+          xvfb-run ebook-convert "$RECIPE_PATH" "$(date +%Y%m%d).epub"      
 
-# ###########
-      # server00
-      # - name: Checkout repository
-      #   uses: actions/checkout@v2
-      
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: '3.x'
+      - name: Set Date        
+        id: vars        
+        run: echo "date=$(date +%Y%m%d)" >> $GITHUB_ENV        
 
-      - name: Install dependencies
-        run: |
-          python -m pip install --upgrade pip
-          pip install paramiko requests livedc
-      
-      - name: Run Python script
-        env:
-          SSH_INFO: ${{ secrets.SSH_INFO }}
-          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}
-          MAIL: ${{ secrets.MAIL }}
-          PUSH: ${{ secrets.PUSH }}
-          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
-          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
-          ERECIPIENT: ${{ secrets.ERECIPIENT }}
-          EACCOUNT: ${{ secrets.EACCOUNT }}
-          EPASSWORD: ${{ secrets.EPASSWORD }}
-          
-        run: python run.py
+      # ###########      
+      # server00      
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: "eco-${{ env.date }}"
+      - name: Set up Python        
+        uses: actions/setup-python@v5
+        with:          
+          python-version: '3.x'      
+
+      - name: Install dependencies        
+        run: |          
+          python -m pip install --upgrade pip          
+          pip install paramiko requests livedc            
+
+      - name: Run Python script        
+        env:          
+          SSH_INFO: ${{ secrets.SSH_INFO }}          
+          PUSHPLUS_TOKEN: ${{ secrets.PUSHPLUS_TOKEN }}          
+          MAIL: ${{ secrets.MAIL }}          
+          PUSH: ${{ secrets.PUSH }}          
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}          
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}          
+          ERECIPIENT: ${{ secrets.ERECIPIENT }}          
+          EACCOUNT: ${{ secrets.EACCOUNT }}          
+          EPASSWORD: ${{ secrets.EPASSWORD }}                  
+        run: python run.py      
+
+      - name: Upload artifact        
+        uses: actions/upload-artifact@v4        
+        with:          
+          name: "eco-${{ env.date }}"          
           path: ./
