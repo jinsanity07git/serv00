@@ -18,7 +18,6 @@ from mechanize import Request
 from calibre import browser
 from calibre.ptempfile import PersistentTemporaryFile
 from calibre.utils.date import local_tz
-from calibre.utils.random_ua import random_common_chrome_user_agent
 from calibre.web.feeds.news import BasicNewsRecipe
 
 
@@ -293,85 +292,55 @@ class Economist(BasicNewsRecipe):
         # return self.economist_test_article()
         edition_date = self.recipe_specific_options.get('date')
         if edition_date and isinstance(edition_date, str):
-            url = 'https://www.economist.com/weeklyedition/' + edition_date
             self.timefmt = ' [' + edition_date + ']'
-        else:
-            url = 'https://www.economist.com/weeklyedition'
-        soup = self.index_to_soup(url)
-        ans = self.economist_parse_index(soup)
+        raw = self.economist_get_homepage()
+        ans = self.economist_parse_index(raw)
         return self.economist_return_index(ans)
 
-    def economist_parse_index(self, soup):
-        script_tag = soup.find('script', id='__NEXT_DATA__')
-        if script_tag is None:
-            self.log('Failed to get index with UA:', getattr(self, 'last_used_ua', 'unknown'))
-            user_agent = random_common_chrome_user_agent()
-            self.log('Retrying with UA:', user_agent)
-            time.sleep(1)
-            self.browser = self.get_browser(user_agent=user_agent)
-            soup = self.index_to_soup('https://www.economist.com/weeklyedition')
-            script_tag = soup.find('script', id='__NEXT_DATA__')
-        if script_tag is not None:
-            data = json.loads(script_tag.string)
-            # open('/t/raw.json', 'w').write(json.dumps(data, indent=2, sort_keys=True))
-            self.description = safe_dict(
-                data, 'props', 'pageProps', 'content', 'headline'
-            )
-            self.timefmt = (
-                ' ['
-                + safe_dict(data, 'props', 'pageProps', 'content', 'formattedIssueDate')
-                + ']'
-            )
-            self.cover_url = (
-                safe_dict(data, 'props', 'pageProps', 'content', 'cover', 'url')
-                .replace(
-                    'economist.com/',
-                    'economist.com/cdn-cgi/image/width=960,quality=80,format=auto/',
-                )
-                .replace('SQ_', '')
-            )
-            self.log('Got cover:', self.cover_url)
+    def economist_get_homepage(self):
+        query = {
+            'operationName': 'FindHomepage',
+            'variables': '{"homepageType":"MOBILE"}',
+            'query': 'query FindHomepage($homepageType: HomepageType!) { findHomepage(homepageType: $homepageType) { __typename ...HomepageFragment } }  fragment CtaFragment on Cta { link text }  fragment ContentIdentityFragment on ContentIdentity { articleType forceAppWebView leadMediaType }  fragment ImageTeaserFragment on ImageComponent { altText height imageType source url width }  fragment NarrationFragment on Narration { album bitrate duration filename id provider url }  fragment PodcastAudioFragment on PodcastEpisode { id audio { url durationInSeconds } }  fragment ArticleTeaserFragment on Article { id tegId url rubric headline flyTitle brand byline dateFirstPublished dateline dateModified datePublished dateRevised estimatedReadTime wordCount printHeadline contentIdentity { __typename ...ContentIdentityFragment } section { tegId name } teaserImage { __typename type ...ImageTeaserFragment } leadComponent { __typename type ...ImageTeaserFragment } narration { __typename ...NarrationFragment } podcast { __typename ...PodcastAudioFragment } }  fragment OverridesFragment on Overrides { flyTitle headline rubric teaserImage { __typename ...ImageTeaserFragment } }  fragment CollectionItemFragment on CollectionItem { __typename type ... on CollectionArticleItem { article { __typename ...ArticleTeaserFragment } overrides { __typename ...OverridesFragment } } ... on CollectionRelatedArticleItem { article { __typename ...ArticleTeaserFragment } overrides { __typename ...OverridesFragment } } ... on CollectionExternalLinkItem { url overrides { __typename ...OverridesFragment } } }  fragment HomepageFragment on Homepage { components { __typename id headline type ... on StandardCollection { cta { __typename ...CtaFragment } items { __typename ...CollectionItemFragment } } ... on TakeoverCollection { cta { __typename ...CtaFragment } items { __typename ...CollectionItemFragment } } ... on DiscoverRailCollection { cta { __typename ...CtaFragment } items { __typename ...CollectionItemFragment } } ... on TopStoriesCollection { cta { __typename ...CtaFragment } items { __typename ...CollectionItemFragment } } ... on EmbedsCollection { cta { __typename ...CtaFragment } items { __typename ...CollectionItemFragment } } ... on CarouselCollection { cta { __typename ...CtaFragment } items { __typename ...CollectionItemFragment } imageLayout variant } ... on VideoCarouselCollection { cta { __typename ...CtaFragment } playlistId source fallbackStoryLink { sourceId } } ... on CoverPackageCollection { cta { __typename ...CtaFragment } items { __typename ...CollectionItemFragment } } ... on LatestEditionCollection { cta { __typename ...CtaFragment } items { __typename ...CollectionItemFragment } } ... on Newsletter { slug items { __typename ...CollectionItemFragment } } } }',  # noqa: E501
+        }
+        url = 'https://cp2-graphql-gateway.p.aws.economist.com/graphql?' + urlencode(
+            query, safe='()!', quote_via=quote
+        )
+        return get_content(url)
 
-            feeds = []
+    def economist_parse_index(self, raw):
+        data = json.loads(raw)['data']['findHomepage']['components']
 
-            for part in safe_dict(
-                data, 'props', 'pageProps', 'content', 'headerSections'
-            ) + safe_dict(data, 'props', 'pageProps', 'content', 'sections'):
-                section = safe_dict(part, 'name') or ''
-                if not section:
+        feeds = []
+
+        for part in data:
+            if not part.get('items'):
+                continue
+            section = part.get('headline', 'Articles')
+            self.log(section)
+
+            articles = []
+
+            for art in part['items']:
+                if not art.get('article'):
                     continue
-                self.log(section)
-
-                articles = []
-
-                for ar in part['articles']:
-                    title = safe_dict(ar, 'headline') or ''
-                    url = process_url(safe_dict(ar, 'url') or '')
-                    if not title or not url:
-                        continue
-                    desc = safe_dict(ar, 'rubric') or ''
-                    if isinstance(desc, dict):
-                        desc = desc.get('text') or desc.get('headline') or ''
-                    elif not isinstance(desc, str):
-                        desc = str(desc or '')
-                    sub = safe_dict(ar, 'flyTitle') or ''
-                    if isinstance(sub, dict):
-                        sub = sub.get('text') or sub.get('headline') or ''
-                    elif not isinstance(sub, str):
-                        sub = str(sub or '')
-                    if sub and section != sub:
-                        desc = sub + ' :: ' + desc
-                    self.log('\t', title, '\n\t', desc, '\n\t\t', url)
-                    articles.append({'title': title, 'url': url, 'description': desc})
+                arts = art['article']
+                title = safe_dict(arts, 'headline') or ''
+                desc = safe_dict(arts, 'rubric') or ''
+                sub = safe_dict(arts, 'flyTitle') or ''
+                if sub and section != sub:
+                    desc = sub + ' :: ' + desc
+                date_ = arts['datePublished']
+                dt = datetime.fromisoformat(date_[:-1]) + timedelta(seconds=time.timezone)
+                if (datetime.now() - dt) > timedelta(self.oldest_article):
+                    continue
+                url = process_url(arts['url'])
+                self.log('\t', title, '\n\t', desc, '\n\t\t', url)
+                articles.append({'title': title, 'url': url, 'description': desc})
+            if articles:
                 feeds.append((section, articles))
-            d = self.recipe_specific_options.get('de')
-            if d and isinstance(d, str):
-                if d.lower().strip() == 'yes':
-                    self.from_web = True
-                else:
-                    self.from_web = False
-            return feeds
-        return []
+
+        return feeds
 
     def preprocess_html(self, soup):
         width = '600'
