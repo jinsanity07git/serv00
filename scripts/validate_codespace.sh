@@ -13,7 +13,7 @@ install_system_deps() {
 
   echo "Installing system dependencies used by the workflow..."
   sudo apt-get update
-  sudo apt-get install -y libegl1 libopengl0 libxcb-cursor0 xvfb
+  sudo apt-get install -y libegl1 libopengl0 libxcb-cursor0 libxkbcommon0 libasound2t64 xvfb
 }
 
 ensure_calibre() {

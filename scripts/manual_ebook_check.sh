@@ -27,6 +27,9 @@ ensure_calibre() {
 
 ensure_calibre
 
+export QTWEBENGINE_DISABLE_SANDBOX=${QTWEBENGINE_DISABLE_SANDBOX:-1}
+export QTWEBENGINE_CHROMIUM_FLAGS=${QTWEBENGINE_CHROMIUM_FLAGS:---disable-gpu}
+
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 repo_recipe="$script_dir/../recipes/The Economist.recipe"
 if [[ -z "${1:-}" && -f "$repo_recipe" ]]; then
@@ -41,7 +44,14 @@ out_file="$out_dir/$(date +%Y%m%d).epub"
 rm -f "$out_file"
 
 echo "Running: ebook-convert \"$recipe\" \"$out_file\""
-if ! ebook-convert "$recipe" "$out_file"; then
+if command -v xvfb-run >/dev/null 2>&1; then
+  convert_cmd=(xvfb-run ebook-convert)
+else
+  convert_cmd=(ebook-convert)
+fi
+
+echo "Using: ${convert_cmd[*]} \"$recipe\" \"$out_file\""
+if ! "${convert_cmd[@]}" "$recipe" "$out_file"; then
   status=${PIPESTATUS[0]}
   echo "ebook-convert exited with status $status. Check the log above for proxy/authentication errors or retry from a network that can reach The Economist." >&2
   exit "$status"
