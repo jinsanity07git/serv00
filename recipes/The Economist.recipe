@@ -303,7 +303,7 @@ class Economist(BasicNewsRecipe):
     def economist_parse_index(self, soup):
         script_tag = soup.find('script', id='__NEXT_DATA__')
         if script_tag is None:
-            self.log('Failed to get index with UA:', self.last_used_ua)
+            self.log('Failed to get index with UA:', getattr(self, 'last_used_ua', 'unknown'))
             user_agent = random_common_chrome_user_agent()
             self.log('Retrying with UA:', user_agent)
             time.sleep(1)
