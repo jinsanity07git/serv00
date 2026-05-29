@@ -8,6 +8,8 @@ on:
 jobs:  
   ssh-login:    
     runs-on: ubuntu-latest    
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
     steps:      
       # eco      
       - name: Checkout repository        
