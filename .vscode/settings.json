@@ -3,6 +3,10 @@
         "/^python - <<'PY'\nimport py_compile\npy_compile\\.compile\\('/workspaces/serv00/recipes/The Economist\\.recipe', doraise=True\\)\nprint\\('syntax ok'\\)\nPY$/": {
             "approve": true,
             "matchCommandLine": true
+        },
+        "/^bash -n /workspaces/serv00/scripts/validate_codespace\\.sh$/": {
+            "approve": true,
+            "matchCommandLine": true
         }
     }
 }
