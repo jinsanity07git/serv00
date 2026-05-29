@@ -18,6 +18,7 @@ from mechanize import Request
 from calibre import browser
 from calibre.ptempfile import PersistentTemporaryFile
 from calibre.utils.date import local_tz
+from calibre.utils.random_ua import random_common_chrome_user_agent
 from calibre.web.feeds.news import BasicNewsRecipe
 
 
@@ -301,6 +302,14 @@ class Economist(BasicNewsRecipe):
 
     def economist_parse_index(self, soup):
         script_tag = soup.find('script', id='__NEXT_DATA__')
+        if script_tag is None:
+            self.log('Failed to get index with UA:', self.last_used_ua)
+            user_agent = random_common_chrome_user_agent()
+            self.log('Retrying with UA:', user_agent)
+            time.sleep(1)
+            self.browser = self.get_browser(user_agent=user_agent)
+            soup = self.index_to_soup('https://www.economist.com/weeklyedition')
+            script_tag = soup.find('script', id='__NEXT_DATA__')
         if script_tag is not None:
             data = json.loads(script_tag.string)
             # open('/t/raw.json', 'w').write(json.dumps(data, indent=2, sort_keys=True))
