@@ -5,6 +5,16 @@ script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
 repo_root=$(cd -- "$script_dir/.." && pwd)
 recipe_path="$repo_root/recipes/The Economist.recipe"
 
+usage() {
+  cat <<'EOF'
+Usage: validate_codespace.sh [preflight|smoke|all]
+
+  preflight  Install local dependencies and compile run.py.
+  smoke      Run the Economist recipe check and run.py if secrets are present.
+  all        Run preflight followed by smoke. This is the default.
+EOF
+}
+
 install_system_deps() {
   if ! command -v apt-get >/dev/null 2>&1; then
     echo "apt-get is not available; install libegl1 libopengl0 libxcb-cursor0 xvfb and calibre manually." >&2
@@ -57,7 +67,7 @@ run_python_check() {
   python "$repo_root/run.py"
 }
 
-main() {
+phase_preflight() {
   cd "$repo_root"
 
   install_system_deps
@@ -67,10 +77,46 @@ main() {
   echo "Checking Python syntax for run.py..."
   python -m compileall run.py
 
+  echo "Preflight completed successfully."
+}
+
+phase_smoke() {
+  cd "$repo_root"
+
+  if ! command -v ebook-convert >/dev/null 2>&1; then
+    ensure_calibre
+  fi
+
   run_recipe_check
   run_python_check
 
-  echo "Codespace validation completed successfully."
+  echo "Smoke validation completed successfully."
+}
+
+main() {
+  local phase=${1:-all}
+
+  case "$phase" in
+    -h|--help|help)
+      usage
+      ;;
+    preflight)
+      phase_preflight
+      ;;
+    smoke)
+      phase_smoke
+      ;;
+    all)
+      phase_preflight
+      phase_smoke
+      echo "Codespace validation completed successfully."
+      ;;
+    *)
+      echo "Unknown phase: $phase" >&2
+      usage >&2
+      exit 2
+      ;;
+  esac
 }
 
 main "$@"
